@@ -103,7 +103,7 @@ export const LeagueMethods = {
     * @param {string} leagueId - The league ID to look up
     * @returns {Promise<Object>} An array of traded pick information
     */
-    async getWeekTransactionsByLeague(leagueId) {
+    async getTradedPicksByLeague(leagueId) {
         if (!leagueId) {
             throw new Error('League ID is required');
         }

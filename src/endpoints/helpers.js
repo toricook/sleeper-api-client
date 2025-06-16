@@ -10,7 +10,7 @@ export const HelperMethods = {
      */
     async getUserIdByUsername(username)
     {
-        const userData = await UserMethods.getUser(username);
+        const userData = await this.getUser(username);
         return userData['user_id']
     },
 
@@ -21,7 +21,7 @@ export const HelperMethods = {
      */
     async getUsernameByUserId(userId)
     {
-        const userData = await UserMethods.getUserById(userId);
+        const userData = await this.getUserById(userId);
         return userData['username']
     },
 

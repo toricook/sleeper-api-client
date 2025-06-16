@@ -17,7 +17,7 @@ export const PlayerMethods = {
      * @param {string} limit - The number of results to fetch (default = 25)
      * @returns {Promise<Object>} An array of player information
     */
-    async getPlayers(type, lookback_hours = 24, limit = 25) {
+    async getTrends(type, lookback_hours = 24, limit = 25) {
         if (!type || !(type == 'add' || type == 'drop'))
         {
             throw new Error('Type (add or drop) is required');
