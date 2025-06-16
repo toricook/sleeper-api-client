@@ -48,7 +48,7 @@ export const HelperMethods = {
             league,
             teams: enhancedRosters.map(roster => ({
                 user: users.find(user => user.user_id === roster.owner_id),
-                ...enhancedRosters,
+                ...roster,
             }))
         }
     },
