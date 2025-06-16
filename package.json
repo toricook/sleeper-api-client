@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "description": "A JavaScript client library for the Sleeper Fantasy Football API",
     "main": "src/index.js",
+    "types": "src/index.d.ts",
     "type": "module",
     "scripts": {
       "test": "node test.js",
