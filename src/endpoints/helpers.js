@@ -1,6 +1,3 @@
-import { LeagueMethods } from "./leagues.js";
-import { UserMethods } from "./users.js"
-
 export const HelperMethods = {
 
     /**
@@ -37,11 +34,21 @@ export const HelperMethods = {
             this.getRostersByLeague(leagueId)
         ]);
 
+        const enhancedRosters = rosters.map(roster => ({
+            ...roster,
+            settings: {
+              ...roster.settings,
+              fpts_total: roster.settings.fpts + (roster.settings.fpts_decimal / 100),
+              fpts_against_total: roster.settings.fpts_against + (roster.settings.fpts_against_decimal / 100),
+              ppts_total: roster.settings.ppts + (roster.settings.ppts_decimal / 100)
+            }
+          }));
+
         return {
             league,
-            teams: rosters.map(roster => ({
+            teams: enhancedRosters.map(roster => ({
                 user: users.find(user => user.user_id === roster.owner_id),
-                ...roster,
+                ...enhancedRosters,
             }))
         }
     },
@@ -59,7 +66,7 @@ export const HelperMethods = {
           if (b.settings.wins !== a.settings.wins) {
             return b.settings.wins - a.settings.wins;
           }
-          return b.settings.fpts - a.settings.fpts;
+          return b.settings.fpts_total - a.settings.fpts_total;
         })
         .map((team, index) => ({
           rank: index + 1,
