@@ -1,0 +1,41 @@
+{
+    "name": "sleeper-api-client",
+    "version": "1.0.0",
+    "description": "A JavaScript client library for the Sleeper Fantasy Football API",
+    "main": "src/index.js",
+    "type": "module",
+    "scripts": {
+      "test": "node test.js",
+      "dev": "node --watch test.js",
+      "lint": "echo 'No linting configured yet'",
+      "start": "node test.js"
+    },
+    "keywords": [
+      "sleeper",
+      "fantasy-football",
+      "api",
+      "nfl",
+      "fantasy-sports",
+      "javascript"
+    ],
+    "author": "Tori <torigcook@gmail.com>",
+    "license": "MIT",
+    "engines": {
+      "node": ">=16.0.0"
+    },
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/toricook/sleeper-api-client.git"
+    },
+    "bugs": {
+      "url": "https://github.com/toricook/sleeper-api-client/issues"
+    },
+    "homepage": "https://github.com/toricook/sleeper-api-client#readme",
+    "files": [
+      "src/",
+      "README.md",
+      "LICENSE"
+    ],
+    "devDependencies": {},
+    "dependencies": {}
+  }
