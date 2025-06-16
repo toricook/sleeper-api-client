@@ -33,7 +33,7 @@ export interface SleeperUser {
       wins: number;
       losses: number;
       ties: number;
-      fpt_total: number;
+      fpts_total: number;
       fpts_against_total: number;
     };
   }
