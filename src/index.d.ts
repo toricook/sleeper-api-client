@@ -45,6 +45,21 @@ export interface SleeperUser {
     teams: Array<SleeperRoster & { user: SleeperUser; rank?: number }>;
   }
   
+  export interface StandingTeam extends SleeperRoster {
+    rank: number;
+    user: SleeperUser | null;
+  }
+  
+  export interface SleeperMatchup {
+    roster_id: number;
+    matchup_id: number;
+    points: number;
+    players: string[];
+    starters: string[];
+    players_points: Record<string, number>;
+    starters_points: Record<string, number>;
+  }
+  
   export interface SleeperAPIOptions {
     timeout?: number;
   }
@@ -85,5 +100,5 @@ export interface SleeperUser {
     getUserIdByUsername(username: string): Promise<string>;
     getUsernameByUserId(userId: string): Promise<string>;
     getLeagueOverview(leagueId: string): Promise<LeagueOverview>;
-    getLeagueStandings(leagueId: string): Promise<Array<SleeperRoster & { user: SleeperUser; rank: number }>>;
+    getLeagueStandings(leagueId: string): Promise<StandingTeam[]>;
   }
