@@ -49,21 +49,9 @@ export const LeagueMethods = {
     },
 
     /**
-     * @typedef {Object} PlayoffBracket
-     * @property {number} r - The round for this matchup (1st, 2nd, 3rd round, etc.)
-     * @property {number} m - The match ID of the matchup, unique for all matchups within a bracket
-     * @property {number|Object} t1 - The roster_id of a team in this matchup OR {w: 1} which means the winner of match id 1
-     * @property {number|Object} t2 - The roster_id of the other team in this matchup OR {l: 1} which means the loser of match id 1
-     * @property {number} [w] - The roster_id of the winning team, if the match has been played
-     * @property {number} [l] - The roster_id of the losing team, if the match has been played
-     * @property {Object} [t1_from] - Where t1 comes from, either winner or loser of the match id, necessary to show bracket progression
-     * @property {Object} [t2_from] - Where t2 comes from, either winner or loser of the match id, necessary to show bracket progression
-     */
-
-    /**
      * Get playoff bracket information for a league
      * @param {string} leagueId - The league ID
-     * @returns {Promise<PlayoffBracket[]>} Array of playoff bracket matchups
+     * @returns {Promise<Object[]>} Array of playoff bracket matchups
      */
     async getWinnersPlayoffBracket(leagueId) {
         if (!leagueId) {
@@ -75,7 +63,7 @@ export const LeagueMethods = {
     /**
     * Get losers playoff bracket for league
     * @param {string} leagueId - The league ID to look up
-    * @returns {Promise<PlayoffBracket[]>} Array of playoff bracket matchups
+    * @returns {Promise<Object[]>} Array of playoff bracket matchups
     */
     async getLosersPlayoffBracket(leagueId) {
         if (!leagueId) {
