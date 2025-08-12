@@ -28,7 +28,7 @@ export const DraftMethods = {
     * @param {string} draftId - The draft ID to look up
     * @returns {Promise<Object>} An array of traded draft picks
     */
-     async getPicksByDraft(draftId) {
+     async getTradedPicksByDraft(draftId) {
         if (!draftId) {
             throw new Error('Draft ID is required');
             }

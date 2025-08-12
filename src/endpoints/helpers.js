@@ -75,7 +75,7 @@ export const HelperMethods = {
     },
 
     async getCurrentWeek() {
-        const state = this.getNflSate();
+        const state = this.getNflState();
         return state['week'];
     },
 
