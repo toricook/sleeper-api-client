@@ -161,6 +161,187 @@ export const HelperMethods = {
                             team2.points_total > team1.points_total ? 'team2' : 'tie') : null
             };
         });
-    }
+    },
+
+    /**
+     * Get playoff format information for a league
+     * @param {string} leagueId - League ID
+     * @returns {Promise<Object>} Playoff format details including settings and current season info
+     */
+    async getPlayoffFormat(leagueId) {
+        if (!leagueId) {
+            throw new Error('League ID is required');
+        }
+
+        try {
+            // Get league settings and NFL state in parallel
+            const [league, nflState] = await Promise.all([
+                this.getLeague(leagueId),
+                this.getNflState()
+            ]);
+
+            // Extract playoff settings from league configuration
+            const playoffSettings = {
+                playoff_teams: league.settings.playoff_teams || 6,
+                playoff_weeks: league.settings.playoff_weeks || 3, 
+                playoff_start_week: league.settings.playoff_week_start || 15,
+                playoff_type: league.settings.playoff_type || 0, // 0 = standard bracket
+                total_teams: league.total_rosters || 12
+            };
+
+            // Add some derived information
+            const playoffInfo = {
+                ...playoffSettings,
+                regular_season_weeks: (playoffSettings.playoff_start_week - 1),
+                championship_week: playoffSettings.playoff_start_week + playoffSettings.playoff_weeks - 1,
+                has_wildcard_round: playoffSettings.playoff_teams === 6 && playoffSettings.playoff_weeks === 3,
+                teams_with_bye: Math.max(0, playoffSettings.playoff_teams - Math.pow(2, Math.floor(Math.log2(playoffSettings.playoff_teams))))
+            };
+
+            return {
+                playoffSettings: playoffInfo,
+                seasonInfo: nflState,
+                league: {
+                    name: league.name,
+                    season: league.season,
+                    total_rosters: league.total_rosters,
+                    status: league.status
+                }
+            };
+
+        } catch (error) {
+            throw new Error(`Failed to fetch playoff format: ${error.message}`);
+        }
+    },
+
+    /**
+     * Get detailed playoff bracket structure for visualization
+     * @param {string} leagueId - League ID
+     * @returns {Promise<Object>} Complete playoff structure with rounds and matchups
+     */
+    async getPlayoffStructure(leagueId) {
+        if (!leagueId) {
+            throw new Error('League ID is required');
+        }
+
+        try {
+            const formatData = await this.getPlayoffFormat(leagueId);
+            const { playoff_teams, playoff_weeks, playoff_start_week } = formatData.playoffSettings;
+
+            // Generate bracket structure based on format
+            const structure = this._generateBracketStructure(playoff_teams, playoff_weeks, playoff_start_week);
+
+            return {
+                ...formatData,
+                bracketStructure: structure
+            };
+
+        } catch (error) {
+            throw new Error(`Failed to generate playoff structure: ${error.message}`);
+        }
+    },
+
+    /**
+     * Private helper to generate bracket structure
+     * @param {number} teams - Number of playoff teams
+     * @param {number} weeks - Number of playoff weeks  
+     * @param {number} startWeek - Starting week of playoffs
+     * @returns {Object} Bracket structure
+     */
+    _generateBracketStructure(teams, weeks, startWeek) {
+        const rounds = [];
+        
+        if (teams === 6 && weeks === 3) {
+            // 6-team format: Wild Card (2 games) -> Semifinals (2 games) -> Championship (1 game)
+            rounds.push({
+                round: 1,
+                week: startWeek,
+                name: 'Wild Card',
+                games: [
+                    { game: 1, team1: '3rd seed', team2: '6th seed' },
+                    { game: 2, team1: '4th seed', team2: '5th seed' }
+                ]
+            });
+            
+            rounds.push({
+                round: 2, 
+                week: startWeek + 1,
+                name: 'Semifinals',
+                games: [
+                    { game: 1, team1: '1st seed', team2: '3rd vs 6th winner' },
+                    { game: 2, team1: '2nd seed', team2: '4th vs 5th winner' }
+                ]
+            });
+            
+            rounds.push({
+                round: 3,
+                week: startWeek + 2, 
+                name: 'Championship',
+                games: [
+                    { game: 1, team1: 'Semifinal Winner 1', team2: 'Semifinal Winner 2' }
+                ]
+            });
+            
+        } else if (teams === 4 && weeks === 2) {
+            // 4-team format: Semifinals (2 games) -> Championship (1 game)
+            rounds.push({
+                round: 1,
+                week: startWeek,
+                name: 'Semifinals', 
+                games: [
+                    { game: 1, team1: '1st seed', team2: '4th seed' },
+                    { game: 2, team1: '2nd seed', team2: '3rd seed' }
+                ]
+            });
+            
+            rounds.push({
+                round: 2,
+                week: startWeek + 1,
+                name: 'Championship',
+                games: [
+                    { game: 1, team1: 'Semifinal Winner 1', team2: 'Semifinal Winner 2' }
+                ]
+            });
+            
+        } else if (teams === 8 && weeks === 3) {
+            // 8-team format: Quarterfinals -> Semifinals -> Championship
+            rounds.push({
+                round: 1,
+                week: startWeek,
+                name: 'Quarterfinals',
+                games: [
+                    { game: 1, team1: '1st seed', team2: '8th seed' },
+                    { game: 2, team1: '4th seed', team2: '5th seed' },
+                    { game: 3, team1: '2nd seed', team2: '7th seed' },
+                    { game: 4, team1: '3rd seed', team2: '6th seed' }
+                ]
+            });
+            
+            rounds.push({
+                round: 2,
+                week: startWeek + 1, 
+                name: 'Semifinals',
+                games: [
+                    { game: 1, team1: 'QF Winner 1', team2: 'QF Winner 2' },
+                    { game: 2, team1: 'QF Winner 3', team2: 'QF Winner 4' }
+                ]
+            });
+            
+            rounds.push({
+                round: 3,
+                week: startWeek + 2,
+                name: 'Championship', 
+                games: [
+                    { game: 1, team1: 'Semifinal Winner 1', team2: 'Semifinal Winner 2' }
+                ]
+            });
+        }
+        
+        return {
+            format: `${teams}-team, ${weeks}-week`,
+            rounds: rounds,
+            totalGames: rounds.reduce((sum, round) => sum + round.games.length, 0)
+        };
+    },
 
 }
