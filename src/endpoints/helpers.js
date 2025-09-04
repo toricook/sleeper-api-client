@@ -132,20 +132,17 @@ export const HelperMethods = {
  * @param {number} week - Week number
  * @returns {Promise<Array>} Formatted matchup pairs with status
  */
+
 async getMatchupScoreboard(leagueId, week) {
     const matchups = await this.getWeeklyMatchups(leagueId, week);
-    const nflState = await this.getNflState();
     
     return matchups.map((matchupPair, index) => {
         const [team1, team2] = matchupPair;
         
-        // Determine game status based on current week and scores
-        const status = this._getGameStatus(week, nflState, team1, team2);
-        
         return {
             matchup_number: index + 1,
             matchup_id: team1.matchup_id,
-            status: status,
+            status: 'upcoming', // Temporary static status
             team1: {
                 name: team1.user?.metadata?.team_name || team1.user?.display_name || 'Unknown',
                 points: (team1.points || 0).toFixed(2),
@@ -162,7 +159,7 @@ async getMatchupScoreboard(leagueId, week) {
                 starters: team2.starters,
                 players_points: team2.players_points
             } : null,
-            winner: team2 && status === 'complete' ? (
+            winner: team2 ? (
                 (team1.points || 0) > (team2.points || 0) ? 'team1' : 
                 (team2.points || 0) > (team1.points || 0) ? 'team2' : 
                 'tie'
