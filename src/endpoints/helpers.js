@@ -126,43 +126,47 @@ export const HelperMethods = {
         return this.getWeeklyMatchups(leagueId, week);
     },
 
-    /**
-     * Get matchups formatted for display/scoreboard
-     * @param {string} leagueId - League ID
-     * @param {number} week - Week number
-     * @returns {Promise<Array>} Formatted matchup pairs
-     */
-    async getMatchupScoreboard(leagueId, week) {
-        const matchups = await this.getWeeklyMatchups(leagueId, week);
+/**
+ * Get matchups formatted for display/scoreboard
+ * @param {string} leagueId - League ID
+ * @param {number} week - Week number
+ * @returns {Promise<Array>} Formatted matchup pairs
+ */
+async getMatchupScoreboard(leagueId, week) {
+    const matchups = await this.getWeeklyMatchups(leagueId, week);
+    
+    return matchups.map((matchupPair, index) => {
+        const [team1, team2] = matchupPair;
         
-        return matchups.map((matchupPair, index) => {
-            const [team1, team2] = matchupPair;
-            
-            return {
-                matchup_number: index + 1,
-                matchup_id: team1.matchup_id,
-                team1: {
-                    name: team1.user?.display_name || team1.user?.metadata?.team_name || 'Unknown',
-                    points: team1.points_total.toFixed(2),
-                    roster_id: team1.roster_id,
-                    user: team1.user,
-                    starters: team1.starters,
-                    players_points: team1.players_points
-                },
-                team2: team2 ? {
-                    name: team2.user?.display_name || team2.user?.metadata?.team_name || 'Unknown',
-                    points: team2.points_total.toFixed(2),
-                    roster_id: team2.roster_id,
-                    user: team2.user,
-                    starters: team2.starters,
-                    players_points: team2.players_points
-                } : null, // Handle bye weeks
-                winner: team2 ? (team1.points_total > team2.points_total ? 'team1' : 
-                            team2.points_total > team1.points_total ? 'team2' : 'tie') : null
-            };
-        });
-    },
-
+        return {
+            matchup_number: index + 1,
+            matchup_id: team1.matchup_id,
+            team1: {
+                name: team1.user?.display_name || team1.user?.metadata?.team_name || 'Unknown',
+                // Fix: Use 'points' instead of 'points_total' and add null safety
+                points: (team1.points || 0).toFixed(2),
+                roster_id: team1.roster_id,
+                user: team1.user,
+                starters: team1.starters,
+                players_points: team1.players_points
+            },
+            team2: team2 ? {
+                name: team2.user?.display_name || team2.user?.metadata?.team_name || 'Unknown',
+                // Use 'points' directly - Sleeper API returns complete decimal value for matchups
+                points: (team2.points || 0).toFixed(2),
+                roster_id: team2.roster_id,
+                user: team2.user,
+                starters: team2.starters,
+                players_points: team2.players_points
+            } : null,
+            winner: team2 ? (
+                (team1.points || 0) > (team2.points || 0) ? 'team1' : 
+                (team2.points || 0) > (team1.points || 0) ? 'team2' : 
+                'tie'
+            ) : null
+        };
+    });
+},
     /**
      * Get playoff format information for a league
      * @param {string} leagueId - League ID
