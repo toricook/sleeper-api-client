@@ -159,28 +159,28 @@ export interface SleeperUser {
     1?: EnhancedMatchup; // Optional for bye weeks
   }
   
-  export interface ScoreboardMatchup {
-    matchup_number: number;
-    matchup_id: number;
-    team1: {
-      name: string;
-      points: string;
-      roster_id: number;
-      user: SleeperUser | null;
-      starters: string[];
-      players_points: Record<string, number>;
-    };
-    team2: {
-      name: string;
-      points: string;
-      roster_id: number;
-      user: SleeperUser | null;
-      starters: string[];
-      players_points: Record<string, number>;
-    } | null;
-    winner: 'team1' | 'team2' | 'tie' | null;
-  }
-  
+export interface ScoreboardMatchup {
+  matchup_number: number;
+  matchup_id: number;
+  status: 'upcoming' | 'in_progress' | 'complete'; // Add this line
+  team1: {
+    name: string;
+    points: string;
+    roster_id: number;
+    user: SleeperUser | null;
+    starters: string[];
+    players_points: Record<string, number>;
+  };
+  team2: {
+    name: string;
+    points: string;
+    roster_id: number;
+    user: SleeperUser | null;
+    starters: string[];
+    players_points: Record<string, number>;
+  } | null;
+  winner: 'team1' | 'team2' | 'tie' | null;
+}
   
   export interface SleeperAPIOptions {
     timeout?: number;
