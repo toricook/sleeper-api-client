@@ -127,23 +127,27 @@ export const HelperMethods = {
     },
 
 /**
- * Get matchups formatted for display/scoreboard
+ * Get matchups formatted for display/scoreboard with game status
  * @param {string} leagueId - League ID
  * @param {number} week - Week number
- * @returns {Promise<Array>} Formatted matchup pairs
+ * @returns {Promise<Array>} Formatted matchup pairs with status
  */
 async getMatchupScoreboard(leagueId, week) {
     const matchups = await this.getWeeklyMatchups(leagueId, week);
+    const nflState = await this.getNflState();
     
     return matchups.map((matchupPair, index) => {
         const [team1, team2] = matchupPair;
         
+        // Determine game status based on current week and scores
+        const status = this._getGameStatus(week, nflState, team1, team2);
+        
         return {
             matchup_number: index + 1,
             matchup_id: team1.matchup_id,
+            status: status,
             team1: {
-                name: team1.user?.display_name || team1.user?.metadata?.team_name || 'Unknown',
-                // Fix: Use 'points' instead of 'points_total' and add null safety
+                name: team1.user?.metadata?.team_name || team1.user?.display_name || 'Unknown',
                 points: (team1.points || 0).toFixed(2),
                 roster_id: team1.roster_id,
                 user: team1.user,
@@ -151,21 +155,74 @@ async getMatchupScoreboard(leagueId, week) {
                 players_points: team1.players_points
             },
             team2: team2 ? {
-                name: team2.user?.display_name || team2.user?.metadata?.team_name || 'Unknown',
-                // Use 'points' directly - Sleeper API returns complete decimal value for matchups
+                name: team2.user?.metadata?.team_name || team2.user?.display_name || 'Unknown',
                 points: (team2.points || 0).toFixed(2),
                 roster_id: team2.roster_id,
                 user: team2.user,
                 starters: team2.starters,
                 players_points: team2.players_points
             } : null,
-            winner: team2 ? (
+            winner: team2 && status === 'complete' ? (
                 (team1.points || 0) > (team2.points || 0) ? 'team1' : 
                 (team2.points || 0) > (team1.points || 0) ? 'team2' : 
                 'tie'
             ) : null
         };
     });
+},
+
+/**
+ * Private helper to determine game status
+ * @param {number} week - Week number of the matchup
+ * @param {Object} nflState - NFL state object
+ * @param {Object} team1 - Team 1 data
+ * @param {Object} team2 - Team 2 data
+ * @returns {string} Status: 'upcoming', 'in_progress', or 'complete'
+ */
+_getGameStatus(week, nflState, team1, team2) {
+    const currentWeek = nflState.week;
+    const currentSeasonType = nflState.season_type;
+    
+    // If it's not regular season, handle differently
+    if (currentSeasonType !== 'regular') {
+        return 'upcoming';
+    }
+    
+    // If matchup week is in the future
+    if (week > currentWeek) {
+        return 'upcoming';
+    }
+    
+    // If matchup week is in the past
+    if (week < currentWeek) {
+        return 'complete';
+    }
+    
+    // Current week - check if any scoring has started
+    const team1Points = team1.points || 0;
+    const team2Points = (team2?.points || 0);
+    
+    // If both teams have zero points, games haven't started yet
+    if (team1Points === 0 && team2Points === 0) {
+        return 'upcoming';
+    }
+    
+    // If it's Tuesday+ of the current week, games are probably done
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    // Tuesday (2) or later = games are complete
+    if (dayOfWeek >= 2) {
+        return 'complete';
+    }
+    
+    // Sunday (0) or Monday (1) with scoring = in progress
+    if (team1Points > 0 || team2Points > 0) {
+        return 'in_progress';
+    }
+    
+    // Default to upcoming
+    return 'upcoming';
 },
     /**
      * Get playoff format information for a league
