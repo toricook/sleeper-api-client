@@ -159,11 +159,9 @@ async getMatchupScoreboard(leagueId, week) {
                 starters: team2.starters,
                 players_points: team2.players_points
             } : null,
-            winner: team2 ? (
-                (team1.points || 0) > (team2.points || 0) ? 'team1' : 
-                (team2.points || 0) > (team1.points || 0) ? 'team2' : 
-                'tie'
-            ) : null
+            winner: (team2 && gamesAreComplete) ? 
+            (team1.points_total > team2.points_total ? 'team1' : 
+             team2.points_total > team1.points_total ? 'team2' : 'tie') : null
         };
     });
 },
