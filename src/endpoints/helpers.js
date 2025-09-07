@@ -133,8 +133,27 @@ export const HelperMethods = {
  * @returns {Promise<Array>} Formatted matchup pairs with status
  */
 
+/**
+ * Get matchups formatted for display/scoreboard
+ * @param {string} leagueId - League ID
+ * @param {number} week - Week number
+ * @returns {Promise<Array>} Formatted matchup pairs
+ */
 async getMatchupScoreboard(leagueId, week) {
     const matchups = await this.getWeeklyMatchups(leagueId, week);
+    
+    // Get current NFL state to determine if games are complete
+    const nflState = await this.getNflState();
+    
+    // Determine if games are complete for the week
+    // Option 1: Simple time-based logic (games finish by Tuesday)
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
+    const isAfterTuesday = dayOfWeek >= 2;
+    
+    // Option 2: Check if we're past the current NFL week
+    const isCurrentWeek = nflState.week === week;
+    const gamesAreComplete = !isCurrentWeek || (isCurrentWeek && isAfterTuesday);
     
     return matchups.map((matchupPair, index) => {
         const [team1, team2] = matchupPair;
@@ -142,26 +161,27 @@ async getMatchupScoreboard(leagueId, week) {
         return {
             matchup_number: index + 1,
             matchup_id: team1.matchup_id,
-            status: 'upcoming', // Temporary static status
             team1: {
-                name: team1.user?.metadata?.team_name || team1.user?.display_name || 'Unknown',
-                points: (team1.points || 0).toFixed(2),
+                name: team1.user?.display_name || team1.user?.metadata?.team_name || 'Unknown',
+                points: team1.points_total.toFixed(2),
                 roster_id: team1.roster_id,
                 user: team1.user,
                 starters: team1.starters,
                 players_points: team1.players_points
             },
             team2: team2 ? {
-                name: team2.user?.metadata?.team_name || team2.user?.display_name || 'Unknown',
-                points: (team2.points || 0).toFixed(2),
+                name: team2.user?.display_name || team2.user?.metadata?.team_name || 'Unknown',
+                points: team2.points_total.toFixed(2),
                 roster_id: team2.roster_id,
                 user: team2.user,
                 starters: team2.starters,
                 players_points: team2.players_points
-            } : null,
+            } : null, // Handle bye weeks
+            
+            // Only set winner if games are actually complete
             winner: (team2 && gamesAreComplete) ? 
-            (team1.points_total > team2.points_total ? 'team1' : 
-             team2.points_total > team1.points_total ? 'team2' : 'tie') : null
+                (team1.points_total > team2.points_total ? 'team1' : 
+                 team2.points_total > team1.points_total ? 'team2' : 'tie') : null
         };
     });
 },
