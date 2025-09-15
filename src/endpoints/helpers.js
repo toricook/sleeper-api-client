@@ -155,7 +155,7 @@ async getMatchupScoreboard(leagueId, week) {
             matchup_number: index + 1,
             matchup_id: team1.matchup_id,
             team1: {
-                name: team1.user?.display_name || team1.user?.metadata?.team_name || 'Unknown',
+                name: team1.user?.team_name || team1.user?.metadata?.display_name || 'Unknown',
                 points: (team1.points || 0).toFixed(2),
                 roster_id: team1.roster_id,
                 user: team1.user,
@@ -163,7 +163,7 @@ async getMatchupScoreboard(leagueId, week) {
                 players_points: team1.players_points
             },
             team2: team2 ? {
-                name: team2.user?.display_name || team2.user?.metadata?.team_name || 'Unknown',
+                name: team2.user?.team_name || team2.user?.metadata?.display_name || 'Unknown',
                 points: (team2.points || 0).toFixed(2),
                 roster_id: team2.roster_id,
                 user: team2.user,
